@@ -20,5 +20,8 @@
 
 !Makefile
 
+!Dockerfile
+!.dockerignore
+
 # ...even if they are in subdirectories
 !*/
