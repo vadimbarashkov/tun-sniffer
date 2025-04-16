@@ -80,7 +80,7 @@ func configureTunInterface(name, tunIP, tunRoute string) error {
 
 	cmd = exec.Command("ip", "link", "set", name, "up")
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to bring up: %w", err)
+		return fmt.Errorf("failed to bring interface up: %w", err)
 	}
 
 	out, err := exec.Command("ip", "route", "add", tunRoute, "via", strings.Split(tunIP, "/")[0], "dev", name).CombinedOutput()
