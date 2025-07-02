@@ -1,59 +1,75 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"net"
-	"os"
+	"strings"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-func init() {
-	flag.Usage = Usage
-}
-
 type Config struct {
 	TunIP    string
 	TunRoute string
+	LogLevel zerolog.Level
 }
 
-func (c *Config) isValid() error {
-	if _, _, err := net.ParseCIDR(c.TunIP); err != nil {
-		return fmt.Errorf("tunIP must be in CIDR notation: %w", err)
-	}
+type logLevelValue struct {
+	Level *zerolog.Level
+}
 
-	if _, _, err := net.ParseCIDR(c.TunRoute); err != nil {
-		return fmt.Errorf("tunRoute must be in CIDR notation: %w", err)
+func (l *logLevelValue) String() string {
+	if l.Level == nil {
+		return ""
 	}
+	return l.Level.String()
+}
 
+func (l *logLevelValue) Set(s string) error {
+	s = strings.ToLower(s)
+	level, err := zerolog.ParseLevel(s)
+	if err != nil {
+		return fmt.Errorf("invalid log level: %s", err)
+	}
+	*l.Level = level
 	return nil
 }
 
-func Parse() (*Config, error) {
-	var cfg Config
+func (c *Config) validate() error {
+	var errs []error
 
-	flag.StringVar(&cfg.TunIP, "tunIP", "10.0.0.1/24", "TUN interface IP")
-	flag.StringVar(&cfg.TunRoute, "tunRoute", "10.0.0.0/24", "TUN interface route")
-	flag.Parse()
-
-	if err := cfg.isValid(); err != nil {
-		return nil, fmt.Errorf("validation error: %w", err)
+	if _, _, err := net.ParseCIDR(c.TunIP); err != nil {
+		errs = append(errs, fmt.Errorf("tunIP must be CIDR: %w", err))
+	}
+	if _, _, err := net.ParseCIDR(c.TunRoute); err != nil {
+		errs = append(errs, fmt.Errorf("tunRoute must be CIDR: %w", err))
 	}
 
-	return &cfg, nil
+	return errors.Join(errs...)
 }
 
-func Usage() {
-	fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
-	flag.PrintDefaults()
+func MustParse() *Config {
+	var cfg Config
+
+	flag.StringVar(&cfg.TunIP, "tunIP", "10.0.0.1/24", "CIDR for TUN interface IP")
+	flag.StringVar(&cfg.TunRoute, "tunRoute", "10.0.0.0/24", "CIRD for routing via TUN interface")
+	flag.Var(&logLevelValue{Level: &cfg.LogLevel}, "logLevel", "Log level (trace|debug|info|warn|error|fatal|panic|disabled)")
+	flag.Parse()
+
+	if err := cfg.validate(); err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("invalid configuration")
+	}
+
+	return &cfg
 }
 
 func SetupLogger(w io.Writer, level zerolog.Level) {
-	zerolog.SetGlobalLevel(level)
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	logger := zerolog.New(w).With().Timestamp().Logger()
-	log.Logger = logger
+	log.Logger = zerolog.New(w).Level(level).With().Timestamp().Logger()
 }
