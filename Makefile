@@ -4,9 +4,6 @@ GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 BUILD_DIR := ./bin/${GOOS}_${GOARCH}
 
-ENV ?= dev
-LOG_LEVEL ?= debug
-LOG_HANDLER ?= text
 TUN_IP ?= 10.0.0.1/24
 TUN_ROUTE ?= 10.0.0.0/24
 
@@ -25,10 +22,7 @@ run: build ## Build and run the application.
 	@echo "Running the application..."
 	"${BUILD_DIR}/${APP_NAME}" \
 		-tunIP=${TUN_IP} \
-		-tunRoute=${TUN_ROUTE} \
-		-env=${ENV} \
-		-logLevel=${LOG_LEVEL} \
-		-logHandler=${LOG_HANDLER}
+		-tunRoute=${TUN_ROUTE}
 
 fmt: ## Format code using gofmt.
 	@echo "Formatting code..."
@@ -67,9 +61,6 @@ docker-run: docker-build  ## Create and run a new container from an image.
 		--device /dev/net/tun \
 		-e TUN_IP="${TUN_IP}" \
 		-e TUN_ROUTE="${TUN_ROUTE}" \
-		-e ENV="${ENV}" \
-		-e LOG_LEVEL="${LOG_LEVEL}" \
-		-e LOG_HANDLER="${LOG_HANDLER}" \
 		tun-sniffer
 
 help: ## Display help for each target.

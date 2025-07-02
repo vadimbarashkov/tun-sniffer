@@ -28,22 +28,13 @@ RUN printf '#!/bin/sh\n\
     chmod 600 /dev/net/tun\n\
     exec ./tun-sniffer \\\n\
     -tunIP="$TUN_IP" \\\n\
-    -tunRoute="$TUN_ROUTE" \\\n\
-    -env="$ENV" \\\n\
-    -logLevel="$LOG_LEVEL" \\\n\
-    -logHandler="$LOG_HANDLER"\n' \
+    -tunRoute="$TUN_ROUTE"\n' \
     > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 ARG TUN_IP=10.0.0.1/24
 ARG TUN_ROUTE=10.0.0.0/24
-ARG ENV=prod
-ARG LOG_LEVEL=info
-ARG LOG_HANDLER=json
 
 ENV TUN_IP=${TUN_IP}
 ENV TUN_ROUTE=${TUN_ROUTE}
-ENV ENV=${ENV}
-ENV LOG_LEVEL=${LOG_LEVEL}
-ENV LOG_HANDLER=${LOG_HANDLER}
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]

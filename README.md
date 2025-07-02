@@ -17,12 +17,6 @@ make help
 ## Configuration
 
 ```bash
--env string
-      Environment (dev, prod) (default "dev")
--logHandler string
-      Log handler format (text, json) (default "text")
--logLevel string
-      Log level (debug, info, warn, error) (default "debug")
 -tunIP string
       TUN interface IP (default "10.0.0.1/24")
 -tunRoute string
@@ -44,9 +38,6 @@ sudo make run TUN_IP=10.0.1.1/24 TUN_ROUTE=10.0.1.0/24
 ```bash
 # Default build and run.
 make docker-run
-
-# You can override default arguments.
-make docker-run ENV=prod LOG_HANDLER=json LOG_LEVEL=info
 ```
 
 ## Project Structure
