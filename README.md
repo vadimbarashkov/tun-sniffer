@@ -21,6 +21,8 @@ make help
       TUN interface IP (default "10.0.0.1/24")
 -tunRoute string
       TUN interface route (default "10.0.0.0/24")
+-logLevel string
+      Log level (trace|debug|info|warn|error|fatal|panic|disabled)
 ```
 
 ## Build and Run
