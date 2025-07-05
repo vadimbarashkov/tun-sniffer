@@ -13,9 +13,10 @@ import (
 )
 
 type Config struct {
-	TunIP    string
-	TunRoute string
-	LogLevel zerolog.Level
+	LogLevel      zerolog.Level
+	TunIP         string
+	TunRoute      string
+	MaxGoroutines int
 }
 
 type logLevelValue struct {
@@ -48,6 +49,9 @@ func (c *Config) validate() error {
 	if _, _, err := net.ParseCIDR(c.TunRoute); err != nil {
 		errs = append(errs, fmt.Errorf("tunRoute must be CIDR: %w", err))
 	}
+	if c.MaxGoroutines <= 0 {
+		errs = append(errs, fmt.Errorf("maxGoroutines must be positive: %d", c.MaxGoroutines))
+	}
 
 	return errors.Join(errs...)
 }
@@ -55,9 +59,10 @@ func (c *Config) validate() error {
 func MustParse() *Config {
 	var cfg Config
 
+	flag.Var(&logLevelValue{Level: &cfg.LogLevel}, "logLevel", "Log level (trace|debug|info|warn|error|fatal|panic|disabled)")
 	flag.StringVar(&cfg.TunIP, "tunIP", "10.0.0.1/24", "CIDR for TUN interface IP")
 	flag.StringVar(&cfg.TunRoute, "tunRoute", "10.0.0.0/24", "CIRD for routing via TUN interface")
-	flag.Var(&logLevelValue{Level: &cfg.LogLevel}, "logLevel", "Log level (trace|debug|info|warn|error|fatal|panic|disabled)")
+	flag.IntVar(&cfg.MaxGoroutines, "maxGoroutines", 100, "Maximum number of goroutines")
 	flag.Parse()
 
 	if err := cfg.validate(); err != nil {

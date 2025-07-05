@@ -50,5 +50,5 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 
-	tun.ReadPackets(ctx, ifce)
+	tun.ReadPackets(ctx, ifce, cfg.MaxGoroutines)
 }

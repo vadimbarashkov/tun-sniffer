@@ -14,9 +14,10 @@ import (
 
 const bufferSize = 2000
 
-func ReadPackets(ctx context.Context, ifce *water.Interface) {
+func ReadPackets(ctx context.Context, ifce *water.Interface, maxGoroutines int) {
 	buff := make([]byte, bufferSize)
 	var wg sync.WaitGroup
+	sema := make(chan struct{}, maxGoroutines)
 
 	for {
 		select {
@@ -32,9 +33,11 @@ func ReadPackets(ctx context.Context, ifce *water.Interface) {
 				continue
 			}
 
+			sema <- struct{}{}
 			wg.Add(1)
 			go func(data []byte) {
 				defer wg.Done()
+				defer func() { <-sema }()
 				packet := gopacket.NewPacket(data, layers.LayerTypeIPv4, gopacket.Default)
 				processPacket(packet)
 			}(slices.Clone(buff[:n]))
@@ -93,7 +96,7 @@ func processTCPLayer(packet gopacket.Packet, ip *layers.IPv4) {
 		Int("src_port", int(tcp.SrcPort)).
 		Int("dst_port", int(tcp.DstPort)).
 		Str("data", fmt.Sprintf("% x", packet.Data())).
-		Msg("reciebed TCP packer")
+		Msg("recieved TCP packet")
 }
 
 func processUDPLayer(packet gopacket.Packet, ip *layers.IPv4) {
@@ -119,5 +122,5 @@ func processUDPLayer(packet gopacket.Packet, ip *layers.IPv4) {
 		Int("src_port", int(udp.SrcPort)).
 		Int("dst_port", int(udp.DstPort)).
 		Str("data", fmt.Sprintf("% x", packet.Data())).
-		Msg("reciebed UDP packer")
+		Msg("recieved UDP packet")
 }
