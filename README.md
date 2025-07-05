@@ -17,12 +17,14 @@ make help
 ## Configuration
 
 ```bash
+-logLevel string
+      Log level (trace|debug|info|warn|error|fatal|panic|disabled)
 -tunIP string
       TUN interface IP (default "10.0.0.1/24")
 -tunRoute string
       TUN interface route (default "10.0.0.0/24")
--logLevel string
-      Log level (trace|debug|info|warn|error|fatal|panic|disabled)
+-maxGoroutines int
+      Maximum number of goroutines (default 100)
 ```
 
 ## Build and Run

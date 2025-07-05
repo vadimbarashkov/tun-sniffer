@@ -33,8 +33,8 @@ func ReadPackets(ctx context.Context, ifce *water.Interface, maxGoroutines int) 
 				continue
 			}
 
-			sema <- struct{}{}
 			wg.Add(1)
+			sema <- struct{}{}
 			go func(data []byte) {
 				defer wg.Done()
 				defer func() { <-sema }()
